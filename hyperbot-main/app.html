@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriVeda Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #4CAF50;
+            --secondary-green: #81C784;
+            --background: #F1F8E9;
+            --text-dark: #2E7D32;
+        }
+
+        body {
+            background-color: var(--background);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .chat-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary-green), #3a8d40);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .chat-header h2 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .language-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .language-toggle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .chat-messages {
+            height: 60vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background-color: #f9f9f9;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot-message .avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--secondary-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 1rem 1.25rem;
+            border-radius: 1.25rem;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .bot-message .message-content {
+            background: white;
+            border: 1px solid #E0E0E0;
+            color: #333;
+        }
+
+        .user-message .message-content {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .preview-panel {
+            display: none;
+            padding: 0.75rem 1.5rem;
+            background: #f8fff8;
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            align-items: center;
+            gap: 1rem;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .preview-thumbnail {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid var(--primary-green);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .preview-info {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .preview-filename {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .preview-cancel {
+            background: none;
+            color: #d32f2f;
+            border: 1px solid #ffcdd2;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .preview-cancel:hover {
+            background: #ffebee;
+        }
+
+        .input-area {
+            padding: 1.25rem;
+            background: white;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .upload-btn {
+            background: white;
+            color: var(--primary-green);
+            border: 2px solid var(--primary-green);
+            padding: 0.7rem 1.1rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .upload-btn:hover {
+            background: var(--primary-green);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .chat-input {
+            flex-grow: 1;
+            padding: 0.8rem 1.25rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 2rem;
+            outline: none;
+            transition: border-color 0.2s;
+            font-size: 1rem;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-green);
+        }
+
+        .send-btn {
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background: #3a8d40;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .typing-indicator {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #f0f0f0;
+            border-radius: 1rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #aaa;
+            border-radius: 50%;
+            margin-left: 4px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                margin: 0;
+                border-radius: 0;
+                height: 100vh;
+            }
+            
+            .chat-messages {
+                height: calc(100vh - 180px);
+            }
+            
+            .input-group {
+                flex-wrap: wrap;
+            }
+            
+            .upload-btn, .send-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .preview-panel {
+                padding: 0.75rem;
+            }
+            
+            .preview-thumbnail {
+                width: 40px;
+                height: 40px;
+            }
+
+            .language-toggle {
+                top: 0.5rem;
+                right: 0.5rem;
+                font-size: 0.7rem;
+                padding: 0.2rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <button class="language-toggle" id="languageToggle">भाषा बदलें (Hindi)</button>
+            <h2 id="appTitle">🌱 AgriVeda Assistant</h2>
+            <p id="appSubtitle">Your Intelligent Crop Health Companion</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                <div class="avatar">🤖</div>
+                <div class="message-content" id="initialMessage">
+                    <p>Hello Farmer! I can help you with:</p>
+                    <ul>
+                        <li>🔍 Identifying crop diseases from photos</li>
+                        <li>🌱 Providing organic treatment solutions</li>
+                        <li>⏰ Seasonal farming advice</li>
+                        <li>💧 Irrigation recommendations</li>
+                    </ul>
+                    <p>Upload a photo of your crop or ask me anything!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="preview-panel" id="previewPanel">
+            <img src="" class="preview-thumbnail" alt="Preview" id="previewThumbnail">
+            <div class="preview-info">
+                <div class="preview-filename" id="previewFilename"></div>
+                <small class="text-muted">Ready to analyze</small>
+            </div>
+            <div class="preview-actions">
+                <button class="preview-cancel" id="removeImageBtn">
+                    ✕ Remove
+                </button>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-group">
+                <input type="file" id="imageUpload" accept="image/*" hidden>
+                <button class="upload-btn" onclick="document.getElementById('imageUpload').click()">
+                    <span id="uploadBtnText">📸 Upload</span>
+                </button>
+                
+                <input type="text" 
+                       class="chat-input" 
+                       id="userInput" 
+                       placeholder="Ask about crop diseases or treatments..."
+                       onkeypress="handleKeyPress(event)">
+                
+                <button class="send-btn" onclick="sendMessage()">
+                    <span id="sendBtnText">Send</span>
+                    <span>➡</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_ENDPOINT = 'https://select-vast-squirrel.ngrok-free.app/chat';
+        let currentImage = null;
+        let currentLanguage = 'en';
+
+        const translations = {
+            en: {
+                title: "🌱 AgriVeda Assistant",
+                subtitle: "Your Intelligent Crop Health Companion",
+                placeholder: "Ask about crop diseases or treatments...",
+                uploadBtn: "📸 Upload",
+                sendBtn: "Send",
+                removeImage: "✕ Remove",
+                thinking: "Thinking",
+                initialMessage: `
+                    <p>Hello Farmer! I can help you with:</p>
+                    <ul>
+                        <li>🔍 Identifying crop diseases from photos</li>
+                        <li>🌱 Providing organic treatment solutions</li>
+                        <li>⏰ Seasonal farming advice</li>
+                        <li>💧 Irrigation recommendations</li>
+                    </ul>
+                    <p>Upload a photo of your crop or ask me anything!</p>
+                `,
+                readyToAnalyze: "Ready to analyze"
+            },
+            hi: {
+                title: "🌱 एग्रीवेद सहायक",
+                subtitle: "आपका बुद्धिमान फसल स्वास्थ्य सहयोगी",
+                placeholder: "फसल रोग या उपचार के बारे में पूछें...",
+                uploadBtn: "📸 छवि चुनें",
+                sendBtn: "भेजें",
+                removeImage: "✕ हटाएँ",
+                thinking: "सोच रहा हूँ",
+                initialMessage: `
+                    <p>नमस्ते किसान! मैं आपकी सहायता कर सकता हूँ:</p>
+                    <ul>
+                        <li>🔍 फसल के रोगों की तस्वीरों से पहचान</li>
+                        <li>🌱 जैविक उपचार समाधान प्रदान करना</li>
+                        <li>⏰ मौसमी खेती सलाह</li>
+                        <li>💧 सिंचाई संबंधी सुझाव</li>
+                    </ul>
+                    <p>अपनी फसल की तस्वीर अपलोड करें या कुछ भी पूछें!</p>
+                `,
+                readyToAnalyze: "विश्लेषण के लिए तैयार"
+            }
+        };
+
+        // Initialize the UI with default language
+        function initLanguage() {
+            updateUI();
+        }
+
+        // Toggle between English and Hindi
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'en' ? 'hi' : 'en';
+            updateUI();
+        }
+
+        // Update all UI elements with current language
+        function updateUI() {
+            const lang = translations[currentLanguage];
+            
+            // Update header
+            document.getElementById('appTitle').textContent = lang.title;
+            document.getElementById('appSubtitle').textContent = lang.subtitle;
+            document.getElementById('languageToggle').textContent = 
+                currentLanguage === 'en' ? 'भाषा बदलें (Hindi)' : 'Switch to English';
+            
+            // Update input area
+            document.getElementById('userInput').placeholder = lang.placeholder;
+            document.getElementById('uploadBtnText').textContent = lang.uploadBtn;
+            document.getElementById('sendBtnText').textContent = lang.sendBtn;
+            
+            // Update preview panel
+            document.getElementById('removeImageBtn').textContent = lang.removeImage;
+            document.querySelector('.preview-info small').textContent = lang.readyToAnalyze;
+            
+            // Update initial message
+            document.getElementById('initialMessage').innerHTML = lang.initialMessage;
+        }
+
+        // Handle image selection
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            currentImage = file;
+            const previewPanel = document.getElementById('previewPanel');
+            const thumbnail = document.getElementById('previewThumbnail');
+            const filename = document.getElementById('previewFilename');
+            
+            // Show preview panel
+            previewPanel.style.display = 'flex';
+            thumbnail.src = URL.createObjectURL(file);
+            filename.textContent = file.name;
+            
+            // Scroll to preview panel
+            previewPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        function removeImage() {
+            currentImage = null;
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('previewPanel').style.display = 'none';
+            document.getElementById('previewThumbnail').src = '';
+            document.getElementById('previewFilename').textContent = '';
+        }
+
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const messageText = userInput.value.trim();
+            
+            // Don't send empty messages without images
+            if (!messageText && !currentImage) return;
+            
+            // Add user message to chat
+            addUserMessage(messageText, currentImage);
+            
+            // Show typing indicator
+            const typingId = showTypingIndicator();
+            
+            // Clear input
+            userInput.value = '';
+            
+            try {
+                const formData = new FormData();
+                if (messageText) formData.append('text', messageText);
+                if (currentImage) formData.append('image', currentImage);
+                formData.append('language', currentLanguage);
+                
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                
+                // Remove typing indicator
+                removeTypingIndicator(typingId);
+                
+                // Add bot response
+                addBotMessage(data.message || (currentLanguage === 'en' ? 
+                    "I couldn't process that request. Please try again." : 
+                    "मैं उस अनुरोध को संसाधित नहीं कर सका। कृपया पुनः प्रयास करें।"));
+                
+                // Clear image after successful send
+                if (currentImage) {
+                    removeImage();
+                }
+            } catch (error) {
+                removeTypingIndicator(typingId);
+                addBotMessage(currentLanguage === 'en' ? 
+                    "Sorry, I'm having trouble connecting. Please try again later." : 
+                    "क्षमा करें, मुझे कनेक्ट करने में समस्या हो रही है। कृपया बाद में पुनः प्रयास करें।");
+                console.error('Error:', error);
+            }
+        }
+
+        function addUserMessage(text, imageFile) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+
+            let content = '';
+            if (text) content += <p>${text}</p>;
+            if (imageFile) {
+                const imageUrl = URL.createObjectURL(imageFile);
+                content += `
+                    <div style="margin-top: 0.5rem;">
+                        <img src="${imageUrl}" style="max-width: 200px; border-radius: 8px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" alt="Uploaded plant image">
+                    </div>
+                `;
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${content}
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addBotMessage(text) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            
+            messageDiv.innerHTML = `
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    <p>${text}</p>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingId = 'typing-' + Date.now();
+            const thinkingText = translations[currentLanguage].thinking;
+            
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message';
+            typingDiv.id = typingId;
+            
+            typingDiv.innerHTML = `
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        ${thinkingText}
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return typingId;
+        }
+
+        function removeTypingIndicator(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.remove();
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Initialize language toggle button
+        document.getElementById('languageToggle').addEventListener('click', toggleLanguage);
+        
+        // Initialize the app
+        initLanguage();
+    </script>
+</body>
+</html>
