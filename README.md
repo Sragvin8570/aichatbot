@@ -139,5 +139,3 @@ This README provides:
 - System architecture overview
 - Contribution guidelines
 - Proper acknowledgments and licensing
-
-Adjust the repository URLs and license file as needed for your specific implementation.
